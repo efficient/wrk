@@ -18,7 +18,7 @@ static struct config {
     SSL_CTX *ctx;
 } cfg;
 
-static const uint8_t latency_series = 1;
+static uint8_t latency_series;
 static struct {
     stats *latency[UINT8_MAX + 1];
     stats *requests;
@@ -89,13 +89,14 @@ int main(int argc, char **argv) {
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT,  SIG_IGN);
 
+    lua_State *L = script_create(cfg.script, url, headers);
+    latency_series  = script_nlseries(L);
     for (uint8_t series = 0; series < latency_series; ++series) {
         statistics.latency[series]  = stats_alloc(cfg.timeout * 1000);
     }
     statistics.requests = stats_alloc(MAX_THREAD_RATE_S);
     thread *threads     = zcalloc(cfg.threads * sizeof(thread));
 
-    lua_State *L = script_create(cfg.script, url, headers);
     if (!script_resolve(L, host, service)) {
         char *msg = strerror(errno);
         fprintf(stderr, "unable to connect to %s:%s %s\n", host, service, msg);

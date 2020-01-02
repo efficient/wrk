@@ -209,6 +209,19 @@ void script_header_done(lua_State *L, luaL_Buffer *buffer) {
     luaL_pushresult(buffer);
 }
 
+uint8_t script_nlseries(lua_State *L) {
+    if (!script_is_function(L, "nlseries")) {
+        return 1;
+    }
+
+    lua_getglobal(L, "nlseries");
+    lua_call(L, 0, 1);
+
+    uint8_t res = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    return res;
+}
+
 void script_summary(lua_State *L, uint64_t duration, uint64_t requests, uint64_t bytes) {
     const table_field fields[] = {
         { "duration", LUA_TNUMBER, &duration },
