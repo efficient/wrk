@@ -48,8 +48,7 @@ static int parse_args(struct config *, char **, struct http_parser_url *, char *
 static char *copy_url_part(char *, struct http_parser_url *, enum http_parser_url_fields);
 
 static void print_stats_header();
-static void print_stats(char *, stats *, char *(*)(long double));
+static void print_stats(char *, stats *, char *(*)(long double), uint8_t);
 static void print_stats_latency(stats *, uint8_t);
-static void print_series(uint8_t);
 
 #endif /* MAIN_H */

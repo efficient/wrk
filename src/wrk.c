@@ -183,11 +183,9 @@ int main(int argc, char **argv) {
 
     print_stats_header();
     for (uint8_t series = 0; series < latency_series; ++series) {
-        print_series(series);
-        print_stats("Latency", statistics.latency[series], format_time_us);
+        print_stats("Latency", statistics.latency[series], format_time_us, series);
     }
-    printf("   ");
-    print_stats("Req/Sec", statistics.requests, format_metric);
+    print_stats("Req/Sec", statistics.requests, format_metric, 0);
     if (cfg.latency) {
         for (uint8_t series = 0; series < latency_series; ++series) {
             print_stats_latency(statistics.latency[series], series);
@@ -582,11 +580,20 @@ static void print_units(long double n, char *(*fmt)(long double), int width) {
     free(msg);
 }
 
-static void print_stats(char *name, stats *stats, char *(*fmt)(long double)) {
+static void print_series(uint8_t series) {
+    if (series) {
+        printf("%-3u", series);
+    } else {
+        printf("   ");
+    }
+}
+
+static void print_stats(char *name, stats *stats, char *(*fmt)(long double), uint8_t series) {
     uint64_t max = stats->max;
     long double mean  = stats_mean(stats);
     long double stdev = stats_stdev(stats, mean);
 
+    print_series(series);
     printf(" %-10s", name);
     print_units(mean,  fmt, 8);
     print_units(stdev, fmt, 10);
@@ -604,13 +611,5 @@ static void print_stats_latency(stats *stats, uint8_t series) {
         printf("%4.0Lf%%", p);
         print_units(n, format_time_us, 10);
         printf("\n");
-    }
-}
-
-static void print_series(uint8_t series) {
-    if (series) {
-        printf("%-3u", series);
-    } else {
-        printf("   ");
     }
 }
