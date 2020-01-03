@@ -222,6 +222,20 @@ uint8_t script_nlseries(lua_State *L) {
     return res;
 }
 
+uint8_t script_lseries(lua_State *L, const char *request) {
+    if (!script_is_function(L, "lseries")) {
+        return 0;
+    }
+
+    lua_getglobal(L, "lseries");
+    lua_pushstring(L, request);
+    lua_call(L, 1, 1);
+
+    uint8_t res = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    return res;
+}
+
 void script_summary(lua_State *L, uint64_t duration, uint64_t requests, uint64_t bytes) {
     const table_field fields[] = {
         { "duration", LUA_TNUMBER, &duration },
