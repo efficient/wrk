@@ -211,7 +211,7 @@ void script_header_done(lua_State *L, luaL_Buffer *buffer) {
 
 uint8_t script_nlseries(lua_State *L) {
     if (!script_is_function(L, "nlseries")) {
-        return 1;
+        return 0;
     }
 
     lua_getglobal(L, "nlseries");

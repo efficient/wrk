@@ -30,6 +30,16 @@ int stats_record(stats *stats, uint64_t n) {
     return 1;
 }
 
+void stats_add(stats *dest, const stats *src) {
+    for (uint64_t n = 0; n <= src->max; n++) {
+        uint64_t m = src->data[n];
+        dest->data[n] += m;
+        dest->count += m;
+    }
+    if (src->min < dest->min) dest->min = src->min;
+    if (src->max > dest->max) dest->max = src->max;
+}
+
 void stats_correct(stats *stats, int64_t expected) {
     for (uint64_t n = expected * 2; n <= stats->max; n++) {
         uint64_t count = stats->data[n];

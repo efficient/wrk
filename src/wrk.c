@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     signal(SIGINT,  SIG_IGN);
 
     lua_State *L = script_create(cfg.script, url, headers);
-    latency_series  = script_nlseries(L);
+    latency_series  = script_nlseries(L) + 1;
     for (uint8_t series = 0; series < latency_series; ++series) {
         statistics.latency[series]  = stats_alloc(cfg.timeout * 1000);
     }
@@ -175,6 +175,10 @@ int main(int argc, char **argv) {
             int64_t interval = runtime_us / (complete / cfg.connections);
                 stats_correct(statistics.latency[series], interval);
         }
+    }
+
+    for (uint8_t series = 1; series < latency_series; ++series) {
+        stats_add(statistics.latency[0], statistics.latency[series]);
     }
 
     print_stats_header();
@@ -604,9 +608,9 @@ static void print_stats_latency(stats *stats, uint8_t series) {
 }
 
 static void print_series(uint8_t series) {
-    if (latency_series == 1) {
-        printf("   ");
-    } else {
+    if (series) {
         printf("%-3u", series);
+    } else {
+        printf("   ");
     }
 }
