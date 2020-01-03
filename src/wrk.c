@@ -18,7 +18,7 @@ static struct config {
     SSL_CTX *ctx;
 } cfg;
 
-static const uint8_t nstatistics = 1;
+static const uint8_t latency_series = 1;
 static struct {
     stats *latency[UINT8_MAX + 1];
     stats *requests;
@@ -89,8 +89,8 @@ int main(int argc, char **argv) {
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT,  SIG_IGN);
 
-    for (uint8_t index = 0; index < nstatistics; ++index) {
-        statistics.latency[index]  = stats_alloc(cfg.timeout * 1000);
+    for (uint8_t series = 0; series < latency_series; ++series) {
+        statistics.latency[series]  = stats_alloc(cfg.timeout * 1000);
     }
     statistics.requests = stats_alloc(MAX_THREAD_RATE_S);
     thread *threads     = zcalloc(cfg.threads * sizeof(thread));
@@ -168,24 +168,24 @@ int main(int argc, char **argv) {
     long double req_per_s   = complete   / runtime_s;
     long double bytes_per_s = bytes      / runtime_s;
 
-    for (uint8_t index = 0; index < nstatistics; ++index) {
-        uint64_t complete = statistics.latency[index]->count;
+    for (uint8_t series = 0; series < latency_series; ++series) {
+        uint64_t complete = statistics.latency[series]->count;
         if (complete / cfg.connections > 0) {
             int64_t interval = runtime_us / (complete / cfg.connections);
-                stats_correct(statistics.latency[index], interval);
+                stats_correct(statistics.latency[series], interval);
         }
     }
 
     print_stats_header();
-    for (uint8_t index = 0; index < nstatistics; ++index) {
-        print_series(index);
-        print_stats("Latency", statistics.latency[index], format_time_us);
+    for (uint8_t series = 0; series < latency_series; ++series) {
+        print_series(series);
+        print_stats("Latency", statistics.latency[series], format_time_us);
     }
     printf("   ");
     print_stats("Req/Sec", statistics.requests, format_metric);
     if (cfg.latency) {
-        for (uint8_t index = 0; index < nstatistics; ++index) {
-            print_stats_latency(statistics.latency[index], index);
+        for (uint8_t series = 0; series < latency_series; ++series) {
+            print_stats_latency(statistics.latency[series], series);
         }
     }
 
@@ -207,8 +207,8 @@ int main(int argc, char **argv) {
     if (script_has_done(L)) {
         script_summary(L, runtime_us, complete, bytes);
         script_errors(L, &errors);
-        for (uint8_t index = 0; index < nstatistics; ++index) {
-            script_done(L, statistics.latency[index], statistics.requests);
+        for (uint8_t series = 0; series < latency_series; ++series) {
+            script_done(L, statistics.latency[series], statistics.requests);
         }
     }
 
@@ -588,23 +588,23 @@ static void print_stats(char *name, stats *stats, char *(*fmt)(long double)) {
     printf("%8.2Lf%%\n", stats_within_stdev(stats, mean, stdev, 1));
 }
 
-static void print_stats_latency(stats *stats, uint8_t id) {
+static void print_stats_latency(stats *stats, uint8_t series) {
     long double percentiles[] = { 50.0, 75.0, 90.0, 99.0 };
     printf("  Latency Distribution\n");
     for (size_t i = 0; i < sizeof(percentiles) / sizeof(long double); i++) {
         long double p = percentiles[i];
         uint64_t n = stats_percentile(stats, p);
-        print_series(id);
+        print_series(series);
         printf("%4.0Lf%%", p);
         print_units(n, format_time_us, 10);
         printf("\n");
     }
 }
 
-static void print_series(uint8_t id) {
+static void print_series(uint8_t series) {
     if (latency_series == 1) {
         printf("   ");
     } else {
-        printf("%-3u", id);
+        printf("%-3u", series);
     }
 }
