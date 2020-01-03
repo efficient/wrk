@@ -358,7 +358,7 @@ static int response_complete(http_parser *parser) {
     }
 
     if (--c->pending == 0) {
-        uint8_t series = script_lseries(thread->L, c->request);
+        uint8_t series = script_lseries(thread->L, c->request, c->length);
         if (!stats_record(statistics.latency[series], now - c->start)) {
             thread->errors.timeout++;
         }

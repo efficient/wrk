@@ -222,13 +222,13 @@ uint8_t script_nlseries(lua_State *L) {
     return res;
 }
 
-uint8_t script_lseries(lua_State *L, const char *request) {
+uint8_t script_lseries(lua_State *L, const char *request, size_t length) {
     if (!script_is_function(L, "lseries")) {
         return 0;
     }
 
     lua_getglobal(L, "lseries");
-    lua_pushstring(L, request);
+    lua_pushlstring(L, request, length);
     lua_call(L, 1, 1);
 
     uint8_t res = lua_tointeger(L, -1);
